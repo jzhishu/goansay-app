@@ -4,7 +4,13 @@ export const MAP_SCENE: MapScene = {
   id: "map_china",
   name: "China Map",
   background: { image: "map_china", width: 2400, height: 1500 },
-  tripPrep: { position: { xPct: 9, yPct: 34 }, label: "Trip Prep" },
+  initialViewBounds: {
+    minXPct: 11.063802083333332,
+    minYPct: 5.590625000000003,
+    maxXPct: 83.04394531250001,
+    maxYPct: 87.14739583333333,
+  },
+  tripPrep: { position: { xPct: 61, yPct: 64 }, label: "Trip Prep" },
   cities: [
     "city_dunhuang",
     "city_beijing",
@@ -31,7 +37,7 @@ export const CITIES: Record<CityId, City> = {
     id: "city_beijing",
     name: "Beijing",
     status: "available",
-    mapPosition: { xPct: 57, yPct: 26 },
+    mapPosition: { xPct: 64.2, yPct: 33.5 },
     markerImage: "marker_beijing",
     heroImage: "hero_beijing",
     trailerCard: {
@@ -51,7 +57,7 @@ export const CITIES: Record<CityId, City> = {
     id: "city_chengdu",
     name: "Chengdu",
     status: "available",
-    mapPosition: { xPct: 30, yPct: 58 },
+    mapPosition: { xPct: 44.6, yPct: 59.7 },
     markerImage: "marker_chengdu",
     heroImage: "hero_chengdu",
     trailerCard: {
@@ -73,6 +79,12 @@ export const CITIES: Record<CityId, City> = {
       background: "canvas_chengdu",
       width: 2400,
       height: 1350,
+      initialViewBounds: {
+        minXPct: 20.616536458333336,
+        minYPct: 14.854166666666666,
+        maxXPct: 77.796875,
+        maxYPct: 83.22453703703704,
+      },
       routes: [
         { from: "lm_chengdu_teahouse", to: "lm_chengdu_hotpot", kind: "main" },
         { from: "lm_chengdu_hotpot", to: "lm_chengdu_opera", kind: "preview" },
@@ -90,7 +102,7 @@ export const CITIES: Record<CityId, City> = {
     id: "city_dunhuang",
     name: "Dunhuang",
     status: "preview",
-    mapPosition: { xPct: 26, yPct: 27 },
+    mapPosition: { xPct: 35.7, yPct: 32.6 },
     markerImage: "marker_dunhuang",
     heroImage: "hero_dunhuang",
     trailerCard: {
@@ -106,7 +118,7 @@ export const CITIES: Record<CityId, City> = {
     id: "city_xian",
     name: "Xi'an",
     status: "preview",
-    mapPosition: { xPct: 44, yPct: 45 },
+    mapPosition: { xPct: 42, yPct: 47.5 },
     markerImage: "marker_xian",
     heroImage: "hero_xian",
     trailerCard: {
@@ -122,7 +134,7 @@ export const CITIES: Record<CityId, City> = {
     id: "city_hangzhou",
     name: "Hangzhou",
     status: "preview",
-    mapPosition: { xPct: 58, yPct: 52 },
+    mapPosition: { xPct: 69.8, yPct: 50.3 },
     markerImage: "marker_hangzhou",
     heroImage: "hero_hangzhou",
     trailerCard: {
@@ -138,7 +150,7 @@ export const CITIES: Record<CityId, City> = {
     id: "city_dali",
     name: "Dali",
     status: "preview",
-    mapPosition: { xPct: 21, yPct: 73 },
+    mapPosition: { xPct: 39.6, yPct: 72.6 },
     markerImage: "marker_dali",
     heroImage: "hero_dali",
     trailerCard: {
@@ -154,7 +166,7 @@ export const CITIES: Record<CityId, City> = {
     id: "city_xiamen",
     name: "Xiamen",
     status: "preview",
-    mapPosition: { xPct: 53, yPct: 79 },
+    mapPosition: { xPct: 70.5, yPct: 66.2 },
     markerImage: "marker_xiamen",
     heroImage: "hero_hangzhou",
     trailerCard: {
@@ -172,7 +184,7 @@ export const LANDMARKS: Record<Landmark["id"], Landmark> = {
   lm_chengdu_teahouse: {
     id: "lm_chengdu_teahouse",
     name: "People's Park Teahouse",
-    canvasPosition: { xPct: 30, yPct: 42 },
+    canvasPosition: { xPct: 34.8, yPct: 41.2 },
     unlockAfter: [],
     markerImage: "lm_teahouse",
     heroImage: "hero_lm_teahouse",
@@ -198,7 +210,7 @@ export const LANDMARKS: Record<Landmark["id"], Landmark> = {
   lm_chengdu_hotpot: {
     id: "lm_chengdu_hotpot",
     name: "Hotpot Night",
-    canvasPosition: { xPct: 58, yPct: 60 },
+    canvasPosition: { xPct: 69.2, yPct: 75.8 },
     unlockAfter: ["lm_chengdu_teahouse"],
     markerImage: "lm_hotpot",
     heroImage: "hero_lm_hotpot",
@@ -211,7 +223,7 @@ export const LANDMARKS: Record<Landmark["id"], Landmark> = {
   lm_chengdu_opera: {
     id: "lm_chengdu_opera",
     name: "Sichuan Opera Show",
-    canvasPosition: { xPct: 32, yPct: 76 },
+    canvasPosition: { xPct: 51, yPct: 49.3 },
     unlockAfter: ["lm_chengdu_hotpot"],
     markerImage: "lm_opera",
     heroImage: "hero_lm_opera",
