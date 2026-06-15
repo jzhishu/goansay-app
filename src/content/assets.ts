@@ -1,0 +1,28 @@
+import type { AssetKey } from "../types/content";
+
+export const ASSETS: Record<AssetKey, string> = {
+  map_china: "/assets/map/map_china.png",
+  canvas_chengdu: "/assets/map/canvas_chengdu.png",
+  marker_beijing: "/assets/markers/maker_beijing.png",
+  marker_chengdu: "/assets/markers/maker_chengdu.png",
+  marker_dunhuang: "/assets/markers/maker_dunhuang.png",
+  marker_xian: "/assets/markers/maker_xian.png",
+  marker_hangzhou: "/assets/markers/maker_hangzhou.png",
+  marker_dali: "/assets/markers/maker_dali.png",
+  marker_xiamen: "/assets/markers/maker_xiamen.png",
+  marker_tripprep: "/assets/markers/maker_start.png",
+  lm_teahouse: "/assets/hero/hero_lm_peoples_park.png",
+  lm_panda: "/assets/markers/maker_chengdu.png",
+  lm_hotpot: "/assets/hero/hero_lm_hotpot.png",
+  lm_opera: "/assets/hero/hero_lm_sichuan_opera.png",
+  hero_beijing: "/assets/hero/hero_beijing.png",
+  hero_chengdu: "/assets/hero/hero_chengdu.png",
+  hero_dunhuang: "/assets/hero/hero_dunhuang.png",
+  hero_xian: "/assets/hero/hero_xian.png",
+  hero_hangzhou: "/assets/hero/hero_hangzhou.png",
+  hero_dali: "/assets/hero/hero_dali.png",
+  hero_lm_teahouse: "/assets/hero/hero_lm_peoples_park.png",
+  hero_lm_panda: "/assets/markers/maker_chengdu.png",
+  hero_lm_hotpot: "/assets/hero/hero_lm_hotpot.png",
+  hero_lm_opera: "/assets/hero/hero_lm_sichuan_opera.png",
+};
