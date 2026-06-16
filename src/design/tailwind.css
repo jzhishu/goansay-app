@@ -27,8 +27,27 @@ body {
   border-radius: 99px;
 }
 
+@keyframes marker-chip-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(-44px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.marker-chip-enter {
+  opacity: 0;
+  animation: marker-chip-enter 0.42s cubic-bezier(0.22, 0.75, 0.3, 1) forwards;
+  animation-delay: var(--chip-delay, 0s);
+  will-change: transform, opacity;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *:not(.marker-chip-enter) {
     animation: none !important;
     transition: none !important;
   }

@@ -44,7 +44,7 @@ export function CityMarker({ city, selected, onSelect }: CityMarkerProps) {
         transform: `translate(-50%, -50%) translateY(${hover || selected ? -3 : 0}px)`,
       }}
     >
-      <div className="relative">
+      <div className="relative z-10">
         <MarkerImage assetKey={city.markerImage} size={selected ? 86 : 76} dim={dim} />
         {selected ? (
           <div className="absolute -bottom-[7px] left-1/2 h-[11px] w-[11px] -translate-x-1/2 rounded-full border-[2.5px] border-white bg-sage shadow-[0_1px_4px_rgba(0,0,0,0.15)]" />
@@ -78,7 +78,7 @@ export function CityMarker({ city, selected, onSelect }: CityMarkerProps) {
       </div>
 
       {selected && city.previewChips ? (
-        <div className="pointer-events-none absolute left-[calc(100%-4px)] top-[-12px] h-[146px] w-[228px]">
+        <div className="pointer-events-none absolute left-[calc(100%-4px)] top-[-12px] z-0 h-[146px] w-[228px]">
           {city.previewChips.slice(0, 3).map((chip, index) => {
             const layout = chipLayouts[index] ?? chipLayouts[chipLayouts.length - 1];
             const chipStyle = {
@@ -91,16 +91,21 @@ export function CityMarker({ city, selected, onSelect }: CityMarkerProps) {
             return (
               <div
                 key={chip.label}
-                className="absolute flex w-max max-w-[206px] items-center gap-2 rounded-[12px] border border-[#f3ede2] bg-[rgba(255,252,246,0.9)] px-[4px] py-[4px] text-[11px] text-[#70685f] shadow-[0_5px_14px_rgba(173,150,116,0.14)] backdrop-blur-xl"
+                className="absolute"
                 style={chipStyle}
               >
-                <SceneThumbnail
-                  assetKey={resolveChipImage(chip.image, chip.landmarkRef)}
-                  alt={chip.label}
-                  className="h-[34px] w-[34px] shrink-0 rounded-[9px] border border-white/75 bg-[#ece6d9] p-[3px] shadow-[0_2px_6px_rgba(0,0,0,0.045)]"
-                  fit="contain"
-                />
-                <span className="whitespace-nowrap pr-1 font-serif text-[11.5px] leading-none text-[#6c655d]">{chip.label}</span>
+                <div
+                  className="marker-chip-enter flex w-max max-w-[206px] items-center gap-2 rounded-[12px] border border-[#f3ede2] bg-white/90 px-[4px] py-[4px] text-[11px] text-[#70685f] shadow-[0_5px_14px_rgba(173,150,116,0.14)] backdrop-blur-xl"
+                  style={{ ["--chip-delay" as string]: `${index * 0.18}s` }}
+                >
+                  <SceneThumbnail
+                    assetKey={resolveChipImage(chip.image, chip.landmarkRef)}
+                    alt={chip.label}
+                    className="h-[34px] w-[34px] shrink-0 rounded-[9px] border border-white/75 bg-[#ece6d9] p-[3px] shadow-[0_2px_6px_rgba(0,0,0,0.045)]"
+                    fit="contain"
+                  />
+                  <span className="whitespace-nowrap pr-1 font-serif text-[11.5px] leading-none text-[#6c655d]">{chip.label}</span>
+                </div>
               </div>
             );
           })}
