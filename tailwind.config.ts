@@ -19,10 +19,6 @@ const config: Config = {
         serif: ["Instrument Serif", "Georgia", "serif"],
       },
       keyframes: {
-        chipIn: {
-          "0%": { opacity: "0", transform: "translateY(6px)" },
-          "100%": { opacity: "1", transform: "none" },
-        },
         cardIn: {
           "0%": { opacity: "0", transform: "translateX(10px)" },
           "100%": { opacity: "1", transform: "none" },
@@ -33,7 +29,6 @@ const config: Config = {
         },
       },
       animation: {
-        chipIn: "chipIn .24s both ease-out",
         cardIn: "cardIn .26s ease-out",
         lvlIn: "lvlIn .4s ease-out",
       },
