@@ -16,7 +16,7 @@ export function LandmarkCard({ landmark }: { landmark: Landmark }) {
 
   return (
     <div className="animate-cardIn w-[350px] overflow-hidden rounded-[30px] border border-black/[0.06] bg-white/90 shadow-[0_16px_48px_rgba(0,0,0,0.09)] backdrop-blur-[20px]">
-      <HeroImage assetKey={landmark.heroImage} height={130} />
+      <HeroImage assetKey={landmark.heroImage} height={175} />
       <div className="px-6 pb-6 pt-5">
         <div className="flex items-start justify-between gap-2.5">
           <h3 className="m-0 font-serif text-[22px] font-medium leading-[1.2] text-ink">{landmark.name}</h3>

@@ -198,7 +198,7 @@ export const LANDMARKS: Record<Landmark["id"], Landmark> = {
     canvasPosition: { xPct: 68, yPct: 24 },
     unlockAfter: [],
     markerImage: "lm_panda",
-    heroImage: "hero_lm_panda",
+    heroImage: "hero_chengdu",
     hero: {
       promise: "Get tickets, find the nursery, and talk about pandas - in Chinese.",
       meta: { conversations: 3, phrases: 12, estimatedMin: 14 },
