@@ -37,6 +37,12 @@ pnpm test
 
 Do not introduce npm or yarn lockfiles. The project should use `pnpm-lock.yaml` once dependencies are installed.
 
+## Verification Behavior
+
+Do not open a browser for manual or visual verification unless the user explicitly asks agents to do so.
+
+After completing implementation work, run the appropriate non-browser checks when available, then report the result to the user. If browser verification would normally be useful, mention it as an optional next step instead of launching it yourself.
+
 ## Technical Direction
 
 The first-version app uses:
