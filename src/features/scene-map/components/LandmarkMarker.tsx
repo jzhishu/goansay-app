@@ -20,6 +20,7 @@ export function LandmarkMarker({ landmark, selected, onSelect }: LandmarkMarkerP
 
   return (
     <div
+      data-panzoom-stop-drag="true"
       onClick={(event) => {
         event.stopPropagation();
         onSelect(landmark.id);

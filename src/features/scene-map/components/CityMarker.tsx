@@ -20,6 +20,7 @@ export function CityMarker({ city, selected, onSelect }: CityMarkerProps) {
 
   return (
     <div
+      data-panzoom-stop-drag="true"
       onClick={(event) => {
         event.stopPropagation();
         onSelect(city.id);

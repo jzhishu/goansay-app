@@ -1,9 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ASSETS } from "../../content/assets";
 import { CITIES, LANDMARKS, MAP_SCENE } from "../../content/sceneMapContent";
-import type { AssetKey, FitBoundsPct, PositionPct } from "../../types/content";
+import type { AssetKey, PositionPct, ViewTransform } from "../../types/content";
 
 type EditorMode = "china" | "chengdu";
+
+interface EditorGuide {
+  id: "header" | "maker";
+  label: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 interface EditableMarker {
   id: string;
@@ -17,32 +26,50 @@ interface EditorScene {
   title: string;
   background: AssetKey;
   size: { width: number; height: number };
-  fitBounds: FitBoundsPct;
+  viewport: { width: number; height: number };
+  initialTransform: ViewTransform;
+  guides: EditorGuide[];
   markers: EditableMarker[];
 }
 
 type DragTarget =
+  | { type: "camera"; sx: number; sy: number; origin: ViewTransform }
   | { type: "marker"; id: string }
-  | { type: "fit"; edge: "move" }
-  | { type: "fit"; edge: "nw" | "ne" | "sw" | "se" }
   | null;
 
+const STORAGE_KEY = "goansay.mapMarkerEditor.v2";
+const VIEWPORT = { width: 1280, height: 720 };
+const MIN_SCALE = 0.35;
+const MAX_SCALE = 2.6;
+
+const GUIDE_LAYOUTS: Record<EditorMode, EditorGuide[]> = {
+  china: [
+    { id: "header", label: "Header Placeholder", x: 36, y: 22, width: 1208, height: 58 },
+    { id: "maker", label: "Maker Placeholder", x: 888, y: 110, width: 360, height: 580 },
+  ],
+  chengdu: [
+    { id: "header", label: "Header Placeholder", x: 36, y: 22, width: 1208, height: 58 },
+    { id: "maker", label: "Maker Placeholder", x: 898, y: 110, width: 350, height: 470 },
+  ],
+};
+
 const roundPct = (value: number) => Math.round(value * 10) / 10;
+const roundPx = (value: number) => Math.round(value * 10) / 10;
+const roundScale = (value: number) => Math.round(value * 10000) / 10000;
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-const STORAGE_KEY = "goansay.mapMarkerEditor.v1";
 
 const sceneFromContent = (mode: EditorMode): EditorScene => {
   if (mode === "chengdu") {
     const city = CITIES.city_chengdu;
-
-    const fitBounds = city.canvas?.initialViewBounds ?? { minXPct: 20, minYPct: 18, maxXPct: 75, maxYPct: 82 };
 
     return {
       mode,
       title: "Chengdu Canvas",
       background: city.canvas?.background ?? "canvas_chengdu",
       size: { width: city.canvas?.width ?? 2400, height: city.canvas?.height ?? 1350 },
-      fitBounds,
+      viewport: VIEWPORT,
+      initialTransform: city.canvas?.initialTransform ?? { x: -200, y: 74, k: 1.0703 },
+      guides: GUIDE_LAYOUTS.chengdu,
       markers: city.landmarks.map((landmarkId) => {
         const landmark = LANDMARKS[landmarkId];
         return {
@@ -55,14 +82,14 @@ const sceneFromContent = (mode: EditorMode): EditorScene => {
     };
   }
 
-  const fitBounds = MAP_SCENE.initialViewBounds ?? { minXPct: 5, minYPct: 18, maxXPct: 64, maxYPct: 82 };
-
   return {
     mode,
     title: "China Map",
     background: MAP_SCENE.background.image,
     size: { width: MAP_SCENE.background.width, height: MAP_SCENE.background.height },
-    fitBounds,
+    viewport: VIEWPORT,
+    initialTransform: MAP_SCENE.initialTransform,
+    guides: GUIDE_LAYOUTS.china,
     markers: [
       {
         id: "tripPrep",
@@ -87,7 +114,6 @@ const loadDraftScenes = (): Partial<Record<EditorMode, EditorScene>> => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
-
     return JSON.parse(raw) as Partial<Record<EditorMode, EditorScene>>;
   } catch {
     return {};
@@ -98,37 +124,28 @@ const saveDraftScenes = (scenes: Partial<Record<EditorMode, EditorScene>>) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(scenes));
 };
 
-const pointFromEvent = (event: React.PointerEvent, element: HTMLDivElement): PositionPct => {
+const getStageMetrics = (element: HTMLDivElement, scene: EditorScene) => {
   const rect = element.getBoundingClientRect();
-  return {
-    xPct: clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100),
-    yPct: clamp(((event.clientY - rect.top) / rect.height) * 100, 0, 100),
-  };
+  const viewportScale = rect.width / scene.viewport.width;
+  const baseWidth = rect.width * 0.92;
+  const baseHeight = baseWidth * (scene.size.height / scene.size.width);
+  const displayX = scene.initialTransform.x * viewportScale;
+  const displayY = scene.initialTransform.y * viewportScale;
+  const centerX = rect.width / 2 + displayX;
+  const centerY = rect.height / 2 + displayY;
+
+  return { rect, viewportScale, baseWidth, baseHeight, centerX, centerY };
 };
 
-const moveFitBounds = (bounds: FitBoundsPct, delta: PositionPct): FitBoundsPct => {
-  const width = bounds.maxXPct - bounds.minXPct;
-  const height = bounds.maxYPct - bounds.minYPct;
-  const minXPct = clamp(bounds.minXPct + delta.xPct, 0, 100 - width);
-  const minYPct = clamp(bounds.minYPct + delta.yPct, 0, 100 - height);
+const pointToMarkerPosition = (event: React.PointerEvent, element: HTMLDivElement, scene: EditorScene): PositionPct => {
+  const { rect, baseWidth, baseHeight, centerX, centerY } = getStageMetrics(element, scene);
+  const localX = ((event.clientX - rect.left - centerX) / scene.initialTransform.k) + baseWidth / 2;
+  const localY = ((event.clientY - rect.top - centerY) / scene.initialTransform.k) + baseHeight / 2;
 
   return {
-    minXPct,
-    minYPct,
-    maxXPct: minXPct + width,
-    maxYPct: minYPct + height,
+    xPct: roundPct(clamp((localX / baseWidth) * 100, 0, 100)),
+    yPct: roundPct(clamp((localY / baseHeight) * 100, 0, 100)),
   };
-};
-
-const updateFitBounds = (bounds: FitBoundsPct, point: PositionPct, edge: "nw" | "ne" | "sw" | "se"): FitBoundsPct => {
-  const next = { ...bounds };
-
-  if (edge.includes("n")) next.minYPct = clamp(point.yPct, 0, bounds.maxYPct - 8);
-  if (edge.includes("s")) next.maxYPct = clamp(point.yPct, bounds.minYPct + 8, 100);
-  if (edge.includes("w")) next.minXPct = clamp(point.xPct, 0, bounds.maxXPct - 8);
-  if (edge.includes("e")) next.maxXPct = clamp(point.xPct, bounds.minXPct + 8, 100);
-
-  return next;
 };
 
 export function MapMarkerEditor() {
@@ -136,7 +153,6 @@ export function MapMarkerEditor() {
   const [draftScenes, setDraftScenes] = useState<Partial<Record<EditorMode, EditorScene>>>(() => loadDraftScenes());
   const [scene, setScene] = useState<EditorScene>(() => loadDraftScenes().china ?? sceneFromContent("china"));
   const [dragTarget, setDragTarget] = useState<DragTarget>(null);
-  const lastPointRef = useRef<PositionPct | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -148,7 +164,7 @@ export function MapMarkerEditor() {
       return {
         cityId: "city_chengdu",
         canvas: {
-          initialViewBounds: scene.fitBounds,
+          initialTransform: scene.initialTransform,
         },
         landmarks: Object.fromEntries(scene.markers.map((marker) => [marker.id, { canvasPosition: marker.position }])),
       };
@@ -156,21 +172,12 @@ export function MapMarkerEditor() {
 
     return {
       mapScene: {
-        initialViewBounds: scene.fitBounds,
+        initialTransform: scene.initialTransform,
         tripPrep: { position: scene.markers.find((marker) => marker.id === "tripPrep")?.position },
       },
       cities: Object.fromEntries(scene.markers.filter((marker) => marker.id !== "tripPrep").map((marker) => [marker.id, { mapPosition: marker.position }])),
     };
   }, [scene]);
-
-  const switchMode = (nextMode: EditorMode) => {
-    const nextDrafts = { ...draftScenes, [scene.mode]: scene };
-    setDraftScenes(nextDrafts);
-    setMode(nextMode);
-    setScene(nextDrafts[nextMode] ?? sceneFromContent(nextMode));
-    setDragTarget(null);
-    lastPointRef.current = null;
-  };
 
   const updateScene = (updater: (current: EditorScene) => EditorScene) => {
     setScene((current) => {
@@ -180,12 +187,19 @@ export function MapMarkerEditor() {
     });
   };
 
+  const switchMode = (nextMode: EditorMode) => {
+    const nextDrafts = { ...draftScenes, [scene.mode]: scene };
+    setDraftScenes(nextDrafts);
+    setMode(nextMode);
+    setScene(nextDrafts[nextMode] ?? sceneFromContent(nextMode));
+    setDragTarget(null);
+  };
+
   const resetCurrentScene = () => {
     const defaultScene = sceneFromContent(mode);
     setScene(defaultScene);
     setDraftScenes((drafts) => ({ ...drafts, [mode]: defaultScene }));
     setDragTarget(null);
-    lastPointRef.current = null;
   };
 
   const clearAllDrafts = () => {
@@ -194,46 +208,51 @@ export function MapMarkerEditor() {
     setDraftScenes({});
     setScene(defaultScene);
     setDragTarget(null);
-    lastPointRef.current = null;
   };
 
-  const handlePointerMove = (event: React.PointerEvent) => {
+  const startCameraDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.target instanceof Element && event.target.closest("[data-editor-stop-drag='true']")) return;
+    event.preventDefault();
+    setDragTarget({
+      type: "camera",
+      sx: event.clientX,
+      sy: event.clientY,
+      origin: scene.initialTransform,
+    });
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const startMarkerDrag = (event: React.PointerEvent<HTMLButtonElement>, markerId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDragTarget({ type: "marker", id: markerId });
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!dragTarget || !stageRef.current) return;
 
-    const point = pointFromEvent(event, stageRef.current);
-
-    if (dragTarget.type === "marker") {
+    if (dragTarget.type === "camera") {
+      const viewportScale = stageRef.current.getBoundingClientRect().width / scene.viewport.width;
       updateScene((current) => ({
         ...current,
-        markers: current.markers.map((marker) =>
-          marker.id === dragTarget.id ? { ...marker, position: { xPct: roundPct(point.xPct), yPct: roundPct(point.yPct) } } : marker,
-        ),
+        initialTransform: {
+          ...current.initialTransform,
+          x: roundPx(dragTarget.origin.x + (event.clientX - dragTarget.sx) / viewportScale),
+          y: roundPx(dragTarget.origin.y + (event.clientY - dragTarget.sy) / viewportScale),
+        },
       }));
       return;
     }
 
-    if (dragTarget.edge === "move") {
-      const lastPoint = lastPointRef.current ?? point;
-      const delta = { xPct: point.xPct - lastPoint.xPct, yPct: point.yPct - lastPoint.yPct };
-      lastPointRef.current = point;
-      updateScene((current) => ({ ...current, fitBounds: moveFitBounds(current.fitBounds, delta) }));
-      return;
-    }
-
-    updateScene((current) => ({ ...current, fitBounds: updateFitBounds(current.fitBounds, point, dragTarget.edge) }));
-  };
-
-  const startDrag = (event: React.PointerEvent, target: DragTarget) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setDragTarget(target);
-    if (stageRef.current) lastPointRef.current = pointFromEvent(event, stageRef.current);
-    event.currentTarget.setPointerCapture(event.pointerId);
+    const position = pointToMarkerPosition(event, stageRef.current, scene);
+    updateScene((current) => ({
+      ...current,
+      markers: current.markers.map((marker) => (marker.id === dragTarget.id ? { ...marker, position } : marker)),
+    }));
   };
 
   const stopDrag = () => {
     setDragTarget(null);
-    lastPointRef.current = null;
   };
 
   const copyOutput = async () => {
@@ -241,12 +260,14 @@ export function MapMarkerEditor() {
   };
 
   return (
-    <div className="fixed inset-0 grid grid-cols-[1fr_360px] overflow-hidden bg-[#F8F8F5] font-sans text-ink">
+    <div className="fixed inset-0 grid grid-cols-[minmax(0,1fr)_360px] overflow-hidden bg-[#F8F8F5] font-sans text-ink">
       <main className="flex min-w-0 flex-col p-6">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h1 className="m-0 font-serif text-[28px] font-medium">Map Marker Editor</h1>
-            <p className="m-0 mt-1 text-sm text-secondary">Drag markers and adjust the fit region used by the initial camera.</p>
+            <p className="m-0 mt-1 text-sm text-secondary">
+              Drag the map until it looks right under the header and maker placeholders, then fine-tune marker positions on top.
+            </p>
           </div>
           <div className="flex rounded-full border border-black/10 bg-white/70 p-1 shadow-sm">
             <button
@@ -269,54 +290,116 @@ export function MapMarkerEditor() {
         <div className="flex min-h-0 flex-1 items-center justify-center rounded-[28px] border border-black/10 bg-white/60 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
           <div
             ref={stageRef}
+            onPointerDown={startCameraDrag}
             onPointerMove={handlePointerMove}
             onPointerUp={stopDrag}
             onPointerCancel={stopDrag}
-            className="relative w-full max-w-[1200px] overflow-hidden rounded-2xl border border-black/10 bg-paper shadow-inner"
-            style={{ aspectRatio: `${scene.size.width} / ${scene.size.height}` }}
+            className="relative w-full max-w-[980px] overflow-hidden rounded-[26px] border border-black/10 bg-paper shadow-inner"
+            style={{ aspectRatio: `${scene.viewport.width} / ${scene.viewport.height}` }}
           >
-            <img src={ASSETS[scene.background]} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" />
+            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-page">
+              <img
+                src={ASSETS[scene.background]}
+                alt=""
+                draggable={false}
+                className="absolute inset-0 h-full w-full scale-[1.18] object-cover opacity-70 blur-md saturate-[0.95]"
+              />
+              <div className="absolute inset-0 bg-[#F8F8F5]/25" />
+            </div>
 
             <div
-              onPointerDown={(event) => startDrag(event, { type: "fit", edge: "move" })}
-              className="absolute cursor-move border-2 border-dashed border-olive/80 bg-sage/10"
+              className="absolute left-1/2 top-1/2 z-10 w-[92%] transition-transform duration-150 ease-out"
               style={{
-                left: `${scene.fitBounds.minXPct}%`,
-                top: `${scene.fitBounds.minYPct}%`,
-                width: `${scene.fitBounds.maxXPct - scene.fitBounds.minXPct}%`,
-                height: `${scene.fitBounds.maxYPct - scene.fitBounds.minYPct}%`,
+                aspectRatio: `${scene.size.width} / ${scene.size.height}`,
+                left: `calc(50% + ${(scene.initialTransform.x / scene.viewport.width) * 100}%)`,
+                top: `calc(50% + ${(scene.initialTransform.y / scene.viewport.height) * 100}%)`,
+                transform: `translate(-50%, -50%) scale(${scene.initialTransform.k})`,
               }}
             >
-              <div className="absolute left-2 top-2 rounded-full bg-olive px-2 py-1 text-[11px] font-medium text-white">Initial fit region</div>
-              {(["nw", "ne", "sw", "se"] as const).map((edge) => (
-                <button
-                  key={edge}
-                  type="button"
-                  onPointerDown={(event) => startDrag(event, { type: "fit", edge })}
-                  className={`absolute h-4 w-4 rounded-full border-2 border-white bg-olive shadow ${
-                    edge === "nw" ? "-left-2 -top-2 cursor-nwse-resize" : ""
-                  } ${edge === "ne" ? "-right-2 -top-2 cursor-nesw-resize" : ""} ${edge === "sw" ? "-bottom-2 -left-2 cursor-nesw-resize" : ""} ${
-                    edge === "se" ? "-bottom-2 -right-2 cursor-nwse-resize" : ""
+              <div className="relative h-full w-full">
+                <img src={ASSETS[scene.background]} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" />
+
+                {scene.markers.map((marker) => (
+                  <button
+                    key={marker.id}
+                    type="button"
+                    data-editor-stop-drag="true"
+                    onPointerDown={(event) => startMarkerDrag(event, marker.id)}
+                    className="absolute flex -translate-x-1/2 -translate-y-1/2 cursor-grab flex-col items-center gap-1 rounded-xl border border-black/10 bg-white/85 px-2 py-1 text-[11px] text-ink shadow-md backdrop-blur active:cursor-grabbing"
+                    style={{ left: `${marker.position.xPct}%`, top: `${marker.position.yPct}%` }}
+                  >
+                    <img src={ASSETS[marker.image]} alt="" draggable={false} className="h-10 w-10 object-contain drop-shadow" />
+                    <span className="whitespace-nowrap">{marker.label}</span>
+                    <span className="text-[10px] text-tertiary">
+                      {roundPct(marker.position.xPct)}, {roundPct(marker.position.yPct)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="pointer-events-none absolute inset-0 z-20">
+              {scene.guides.map((guide) => (
+                <div
+                  key={guide.id}
+                  className={`absolute rounded-[22px] border-2 border-dashed ${
+                    guide.id === "header" ? "border-[#8A9574] bg-[#8A9574]/10" : "border-[#C49A74] bg-[#C49A74]/10"
                   }`}
-                />
+                  style={{
+                    left: `${(guide.x / scene.viewport.width) * 100}%`,
+                    top: `${(guide.y / scene.viewport.height) * 100}%`,
+                    width: `${(guide.width / scene.viewport.width) * 100}%`,
+                    height: `${(guide.height / scene.viewport.height) * 100}%`,
+                  }}
+                >
+                  <div className="absolute left-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[11px] font-medium text-ink shadow-sm">
+                    {guide.label}
+                  </div>
+                </div>
               ))}
             </div>
 
-            {scene.markers.map((marker) => (
-              <button
-                key={marker.id}
-                type="button"
-                onPointerDown={(event) => startDrag(event, { type: "marker", id: marker.id })}
-                className="absolute flex -translate-x-1/2 -translate-y-1/2 cursor-grab flex-col items-center gap-1 rounded-xl border border-black/10 bg-white/80 px-2 py-1 text-[11px] text-ink shadow-md backdrop-blur active:cursor-grabbing"
-                style={{ left: `${marker.position.xPct}%`, top: `${marker.position.yPct}%` }}
-              >
-                <img src={ASSETS[marker.image]} alt="" draggable={false} className="h-10 w-10 object-contain drop-shadow" />
-                <span className="whitespace-nowrap">{marker.label}</span>
-                <span className="text-[10px] text-tertiary">
-                  {roundPct(marker.position.xPct)}, {roundPct(marker.position.yPct)}
-                </span>
-              </button>
-            ))}
+            <div className="absolute bottom-7 left-7 z-30 flex flex-col gap-2">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  data-editor-stop-drag="true"
+                  onClick={() =>
+                    updateScene((current) => ({
+                      ...current,
+                      initialTransform: { ...current.initialTransform, k: roundScale(clamp(current.initialTransform.k + 0.15, MIN_SCALE, MAX_SCALE)) },
+                    }))
+                  }
+                  className="h-9 w-9 rounded-[11px] border border-black/[0.06] bg-white/80 text-[15px] text-secondary backdrop-blur-[14px]"
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  data-editor-stop-drag="true"
+                  onClick={() =>
+                    updateScene((current) => ({
+                      ...current,
+                      initialTransform: { ...current.initialTransform, k: roundScale(clamp(current.initialTransform.k - 0.15, MIN_SCALE, MAX_SCALE)) },
+                    }))
+                  }
+                  className="h-9 w-9 rounded-[11px] border border-black/[0.06] bg-white/80 text-[15px] text-secondary backdrop-blur-[14px]"
+                >
+                  -
+                </button>
+                <button
+                  type="button"
+                  data-editor-stop-drag="true"
+                  onClick={() => updateScene((current) => ({ ...current, initialTransform: sceneFromContent(current.mode).initialTransform }))}
+                  className="h-9 w-9 rounded-[11px] border border-black/[0.06] bg-white/80 text-[15px] text-secondary backdrop-blur-[14px]"
+                >
+                  ◎
+                </button>
+              </div>
+              <div className="rounded-full border border-black/[0.06] bg-white/75 px-4 py-[9px] text-[12.5px] text-secondary backdrop-blur-[14px]">
+                Drag map in empty space. Drag markers directly. Header and maker are reference only.
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -325,17 +408,28 @@ export function MapMarkerEditor() {
         <div>
           <h2 className="m-0 font-serif text-[22px] font-medium">{scene.title}</h2>
           <p className="mt-2 text-sm leading-6 text-secondary">
-            The fit region is the camera target. It should include the important map area, not just marker centers, so the initial view can show the whole intended composition.
+            This editor now outputs the exact initial camera transform. Runtime pages read that config directly on every refresh.
           </p>
         </div>
 
         <div className="mt-5 rounded-2xl bg-black/[0.035] p-4 text-sm text-secondary">
-          <div className="font-medium text-ink">Fit bounds</div>
+          <div className="font-medium text-ink">Initial transform</div>
           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-            <span>minX {roundPct(scene.fitBounds.minXPct)}</span>
-            <span>minY {roundPct(scene.fitBounds.minYPct)}</span>
-            <span>maxX {roundPct(scene.fitBounds.maxXPct)}</span>
-            <span>maxY {roundPct(scene.fitBounds.maxYPct)}</span>
+            <span>x {roundPx(scene.initialTransform.x)}</span>
+            <span>y {roundPx(scene.initialTransform.y)}</span>
+            <span>k {roundScale(scene.initialTransform.k)}</span>
+            <span>viewport {scene.viewport.width}×{scene.viewport.height}</span>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-2xl bg-black/[0.035] p-4 text-sm text-secondary">
+          <div className="font-medium text-ink">Reference overlays</div>
+          <div className="mt-2 flex flex-col gap-2 text-xs">
+            {scene.guides.map((guide) => (
+              <span key={guide.id}>
+                {guide.label}: {guide.width}×{guide.height} at {guide.x}, {guide.y}
+              </span>
+            ))}
           </div>
         </div>
 

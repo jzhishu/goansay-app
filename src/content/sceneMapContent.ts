@@ -4,11 +4,10 @@ export const MAP_SCENE: MapScene = {
   id: "map_china",
   name: "China Map",
   background: { image: "map_china", width: 2400, height: 1500 },
-  initialViewBounds: {
-    minXPct: 11.063802083333332,
-    minYPct: 5.590625000000003,
-    maxXPct: 83.04394531250001,
-    maxYPct: 87.14739583333333,
+  initialTransform: {
+    x: -141.66318240334093,
+    y: 46.67898169991807,
+    k: 0.9608928912404756,
   },
   tripPrep: { position: { xPct: 61, yPct: 64 }, label: "Trip Prep" },
   cities: [
@@ -79,11 +78,10 @@ export const CITIES: Record<CityId, City> = {
       background: "canvas_chengdu",
       width: 2400,
       height: 1350,
-      initialViewBounds: {
-        minXPct: 20.616536458333336,
-        minYPct: 14.854166666666666,
-        maxXPct: 77.796875,
-        maxYPct: 83.22453703703704,
+      initialTransform: {
+        x: -200.00128113648157,
+        y: 73.81078100674623,
+        k: 1.0703165542293718,
       },
       routes: [
         { from: "lm_chengdu_teahouse", to: "lm_chengdu_hotpot", kind: "main" },

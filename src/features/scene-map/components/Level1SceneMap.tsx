@@ -16,19 +16,13 @@ export function Level1SceneMap({ onEnterCity }: Level1SceneMapProps) {
   const [selected, setSelected] = useState<CityId>("city_chengdu");
   const resolvePos = (id: MapRoute["from"] | MapRoute["to"]) =>
     id === "tripPrep" ? MAP_SCENE.tripPrep.position : CITIES[id as CityId]?.mapPosition;
-  const focusPoints = [MAP_SCENE.tripPrep.position, ...MAP_SCENE.cities.map((cityId) => CITIES[cityId].mapPosition)];
 
   return (
     <div className="absolute inset-0">
       <PanZoom
         aspect="2400 / 1500"
         backgroundAssetKey={MAP_SCENE.background.image}
-        contentSize={{ width: MAP_SCENE.background.width, height: MAP_SCENE.background.height }}
-        focusPoints={focusPoints}
-        focusBounds={MAP_SCENE.initialViewBounds}
-        storageKey="china-map"
-        reservedRight={430}
-        reservedTop={94}
+        initialTransform={MAP_SCENE.initialTransform}
       >
         <BackgroundImage assetKey={MAP_SCENE.background.image} />
         <RouteLayer routes={MAP_SCENE.routes} resolvePos={resolvePos} selectedId={selected} vw={2400} vh={1500} />

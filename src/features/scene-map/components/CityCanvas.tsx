@@ -21,19 +21,13 @@ export function CityCanvas({ cityId, onBack }: CityCanvasProps) {
   if (!city.canvas) return null;
 
   const resolvePos = (id: MapRoute["from"] | MapRoute["to"]) => LANDMARKS[id as LandmarkId]?.canvasPosition;
-  const focusPoints = city.landmarks.map((landmarkId) => LANDMARKS[landmarkId].canvasPosition);
 
   return (
     <div className="absolute inset-0 animate-lvlIn">
       <PanZoom
         aspect="2400 / 1350"
         backgroundAssetKey={city.canvas.background}
-        contentSize={{ width: city.canvas.width, height: city.canvas.height }}
-        focusPoints={focusPoints}
-        focusBounds={city.canvas.initialViewBounds}
-        storageKey={`city-canvas-${city.id}`}
-        reservedRight={420}
-        reservedTop={150}
+        initialTransform={city.canvas.initialTransform}
       >
         <BackgroundImage assetKey={city.canvas.background} />
         <RouteLayer routes={city.canvas.routes} resolvePos={resolvePos} selectedId={selected} vw={2400} vh={1350} />

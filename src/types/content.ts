@@ -68,11 +68,10 @@ export interface PositionPct {
   yPct: number;
 }
 
-export interface FitBoundsPct {
-  minXPct: number;
-  minYPct: number;
-  maxXPct: number;
-  maxYPct: number;
+export interface ViewTransform {
+  x: number;
+  y: number;
+  k: number;
 }
 
 export interface MapRoute {
@@ -90,7 +89,7 @@ export interface MapScene {
     width: number;
     height: number;
   };
-  initialViewBounds?: FitBoundsPct;
+  initialTransform: ViewTransform;
   tripPrep: {
     position: PositionPct;
     label: string;
@@ -126,7 +125,7 @@ export interface City {
     background: AssetKey;
     width: number;
     height: number;
-    initialViewBounds?: FitBoundsPct;
+    initialTransform: ViewTransform;
     routes: MapRoute[];
   };
   landmarks: LandmarkId[];

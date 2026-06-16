@@ -5,6 +5,7 @@ import { CheckBadge } from "./Icons";
 export function TripPrepMarker({ pos }: { pos: PositionPct }) {
   return (
     <div
+      data-panzoom-stop-drag="true"
       className="absolute z-[9] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
       style={{ left: `${pos.xPct}%`, top: `${pos.yPct}%` }}
     >
