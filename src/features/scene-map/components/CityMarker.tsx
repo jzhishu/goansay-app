@@ -1,7 +1,8 @@
+import { LANDMARKS } from "../../../content/sceneMapContent";
 import { getCityDerivedStatus, getCityProgress } from "../../progress/progressSelectors";
 import type { City, CityId } from "../../../types/content";
 import { CheckBadge, LockIcon } from "./Icons";
-import { MarkerImage } from "./AssetImage";
+import { MarkerImage, SceneThumbnail } from "./AssetImage";
 import { ProgressBar } from "./ProgressBar";
 import { STATUS_COPY } from "./StatusPill";
 import { useState } from "react";
@@ -17,6 +18,8 @@ export function CityMarker({ city, selected, onSelect }: CityMarkerProps) {
   const status = getCityDerivedStatus(city.id);
   const dim = status === "preview";
   const progress = getCityProgress(city.id);
+  const resolveChipImage = (image?: City["previewChips"][number]["image"], landmarkRef?: City["previewChips"][number]["landmarkRef"]) =>
+    (landmarkRef ? LANDMARKS[landmarkRef]?.markerImage : undefined) ?? image ?? city.heroImage;
 
   return (
     <div
@@ -71,15 +74,23 @@ export function CityMarker({ city, selected, onSelect }: CityMarkerProps) {
 
       {selected && city.previewChips ? (
         <div className="absolute left-[calc(100%+14px)] top-[-6px] flex w-max flex-col gap-1.5">
-          {city.previewChips.slice(0, 3).map((chip, index) => (
-            <div
-              key={chip.label}
-              className="animate-chipIn rounded-[11px] border border-white/50 bg-white/80 px-3 py-1.5 text-[11.5px] text-secondary shadow-[0_3px_10px_rgba(0,0,0,0.05)] backdrop-blur-xl"
-              style={{ animationDelay: `${index * 0.06}s` }}
-            >
-              {chip.label}
-            </div>
-          ))}
+          {city.previewChips.slice(0, 3).map((chip, index) => {
+            return (
+              <div
+                key={chip.label}
+                className="animate-chipIn flex w-max items-center gap-2 rounded-[11px] border border-white/50 bg-white/80 px-2 py-1.5 text-[11.5px] text-secondary shadow-[0_3px_10px_rgba(0,0,0,0.05)] backdrop-blur-xl"
+                style={{ animationDelay: `${index * 0.06}s` }}
+              >
+                <SceneThumbnail
+                  assetKey={resolveChipImage(chip.image, chip.landmarkRef)}
+                  alt={chip.label}
+                  className="h-7 w-7 rounded-[8px] bg-[#EDEBE0] p-1"
+                  fit="contain"
+                />
+                <span className="whitespace-nowrap pr-1">{chip.label}</span>
+              </div>
+            );
+          })}
         </div>
       ) : null}
     </div>

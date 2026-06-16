@@ -44,12 +44,16 @@ export const CITIES: Record<CityId, City> = {
       landmarkCount: 4,
       estimatedMin: 45,
       sceneTasks: [
-        { label: "Ask for Temple tickets", icon: "🎫" },
-        { label: "Order breakfast in a hutong", icon: "🥟" },
-        { label: "Navigate rail arrival", icon: "🚄" },
+        { label: "Ask for Temple tickets", icon: "🎫", image: "hero_beijing" },
+        { label: "Order breakfast in a hutong", icon: "🥟", image: "hero_beijing" },
+        { label: "Navigate rail arrival", icon: "🚄", image: "hero_beijing" },
       ],
     },
-    previewChips: [{ label: "Temple of Heaven" }, { label: "Hutong Streets" }, { label: "Forbidden City" }],
+    previewChips: [
+      { label: "Temple of Heaven", image: "hero_beijing" },
+      { label: "Hutong Streets", image: "hero_beijing" },
+      { label: "Forbidden City", image: "hero_beijing" },
+    ],
     landmarks: [],
   },
   city_chengdu: {
@@ -64,15 +68,15 @@ export const CITIES: Record<CityId, City> = {
       landmarkCount: 4,
       estimatedMin: 70,
       sceneTasks: [
-        { label: "Ask for a seat in a teahouse", icon: "🍵", landmarkRef: "lm_chengdu_teahouse" },
-        { label: "Order hotpot like a local", icon: "🍲", landmarkRef: "lm_chengdu_hotpot" },
-        { label: "Visit the panda base", icon: "🐼", landmarkRef: "lm_chengdu_panda" },
+        { label: "Ask for a seat in a teahouse", icon: "🍵", landmarkRef: "lm_chengdu_teahouse", image: "hero_lm_teahouse" },
+        { label: "Order hotpot like a local", icon: "🍲", landmarkRef: "lm_chengdu_hotpot", image: "hero_lm_hotpot" },
+        { label: "Visit the panda base", icon: "🐼", landmarkRef: "lm_chengdu_panda", image: "hero_chengdu" },
       ],
     },
     previewChips: [
-      { label: "People's Park", landmarkRef: "lm_chengdu_teahouse" },
-      { label: "Hotpot Night", landmarkRef: "lm_chengdu_hotpot" },
-      { label: "Panda Base", landmarkRef: "lm_chengdu_panda" },
+      { label: "People's Park", landmarkRef: "lm_chengdu_teahouse", image: "hero_lm_teahouse" },
+      { label: "Hotpot Night", landmarkRef: "lm_chengdu_hotpot", image: "hero_lm_hotpot" },
+      { label: "Panda Base", landmarkRef: "lm_chengdu_panda", image: "hero_chengdu" },
     ],
     canvas: {
       background: "canvas_chengdu",
@@ -109,7 +113,10 @@ export const CITIES: Record<CityId, City> = {
       estimatedMin: 40,
       sceneTasks: [],
     },
-    previewChips: [{ label: "Mogao Caves" }, { label: "Desert Camel Ride" }],
+    previewChips: [
+      { label: "Mogao Caves", image: "hero_dunhuang" },
+      { label: "Desert Camel Ride", image: "hero_dunhuang" },
+    ],
     landmarks: [],
   },
   city_xian: {
@@ -125,7 +132,10 @@ export const CITIES: Record<CityId, City> = {
       estimatedMin: 40,
       sceneTasks: [],
     },
-    previewChips: [{ label: "Terracotta Army" }, { label: "Muslim Quarter" }],
+    previewChips: [
+      { label: "Terracotta Army", image: "hero_xian" },
+      { label: "Muslim Quarter", image: "hero_xian" },
+    ],
     landmarks: [],
   },
   city_hangzhou: {
@@ -141,7 +151,10 @@ export const CITIES: Record<CityId, City> = {
       estimatedMin: 40,
       sceneTasks: [],
     },
-    previewChips: [{ label: "West Lake" }, { label: "Tea Plantation" }],
+    previewChips: [
+      { label: "West Lake", image: "hero_hangzhou" },
+      { label: "Tea Plantation", image: "hero_hangzhou" },
+    ],
     landmarks: [],
   },
   city_dali: {
@@ -157,7 +170,10 @@ export const CITIES: Record<CityId, City> = {
       estimatedMin: 40,
       sceneTasks: [],
     },
-    previewChips: [{ label: "Three Pagodas" }, { label: "Old Town" }],
+    previewChips: [
+      { label: "Three Pagodas", image: "hero_dali" },
+      { label: "Old Town", image: "hero_dali" },
+    ],
     landmarks: [],
   },
   city_xiamen: {
@@ -173,7 +189,10 @@ export const CITIES: Record<CityId, City> = {
       estimatedMin: 40,
       sceneTasks: [],
     },
-    previewChips: [{ label: "Gulangyu Island" }, { label: "Shapowei" }],
+    previewChips: [
+      { label: "Gulangyu Island", image: "hero_hangzhou" },
+      { label: "Shapowei", image: "hero_hangzhou" },
+    ],
     landmarks: [],
   },
 };

@@ -1,6 +1,7 @@
+import { LANDMARKS } from "../../../content/sceneMapContent";
 import { getCityDerivedStatus, getCityProgress } from "../../progress/progressSelectors";
 import type { City } from "../../../types/content";
-import { HeroImage } from "./AssetImage";
+import { HeroImage, SceneThumbnail } from "./AssetImage";
 import { LockIcon } from "./Icons";
 import { ProgressBar } from "./ProgressBar";
 import { StatusPill } from "./StatusPill";
@@ -21,6 +22,9 @@ export function TrailerCard({ city, onEnter }: TrailerCardProps) {
     completed: `Review ${city.name}`,
     locked: "Locked",
   }[status];
+
+  const resolveTaskImage = (task: City["trailerCard"]["sceneTasks"][number]) =>
+    (task.landmarkRef ? LANDMARKS[task.landmarkRef]?.markerImage : undefined) ?? task.image ?? city.heroImage;
 
   return (
     <div className="animate-cardIn flex max-h-[calc(100vh-140px)] w-[360px] flex-col overflow-y-auto rounded-[30px] border border-black/[0.06] bg-white/90 shadow-[0_16px_48px_rgba(0,0,0,0.09)] backdrop-blur-[20px]">
@@ -59,9 +63,12 @@ export function TrailerCard({ city, onEnter }: TrailerCardProps) {
                 key={task.label}
                 className="flex items-center gap-3 rounded-[14px] border border-black/[0.04] bg-black/[0.025] px-[13px] py-2.5"
               >
-                <div className="flex h-[38px] w-[38px] items-center justify-center rounded-[10px] bg-[#EDEBE0] text-lg">
-                  {task.icon}
-                </div>
+                <SceneThumbnail
+                  assetKey={resolveTaskImage(task)}
+                  alt={task.label}
+                  className="h-[38px] w-[38px] rounded-[10px] bg-[#EDEBE0] p-1.5"
+                  fit="contain"
+                />
                 <span className="flex-1 text-[13.5px] text-ink">{task.label}</span>
                 <span className="text-tertiary">›</span>
               </div>

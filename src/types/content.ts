@@ -101,6 +101,7 @@ export interface MapScene {
 export interface PreviewChip {
   label: string;
   landmarkRef?: LandmarkId;
+  image?: AssetKey;
 }
 
 export interface City {
@@ -118,6 +119,7 @@ export interface City {
       label: string;
       icon?: string;
       landmarkRef?: LandmarkId;
+      image?: AssetKey;
     }[];
   };
   previewChips: PreviewChip[];

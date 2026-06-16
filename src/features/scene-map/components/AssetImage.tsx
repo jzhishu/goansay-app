@@ -55,3 +55,25 @@ export function HeroImage({ assetKey, height = 150, radiusClass = "rounded-t-[30
     />
   );
 }
+
+interface SceneThumbnailProps {
+  assetKey?: AssetKey;
+  alt: string;
+  className?: string;
+  fit?: "contain" | "cover";
+}
+
+export function SceneThumbnail({ assetKey, alt, className = "", fit = "cover" }: SceneThumbnailProps) {
+  if (!assetKey) {
+    return <div className={`bg-black/5 ${className}`.trim()} aria-hidden="true" />;
+  }
+
+  return (
+    <img
+      src={ASSETS[assetKey]}
+      alt={alt}
+      draggable={false}
+      className={`block ${fit === "contain" ? "object-contain" : "object-cover"} ${className}`.trim()}
+    />
+  );
+}
