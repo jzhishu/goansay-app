@@ -260,8 +260,8 @@ export function MapMarkerEditor() {
   };
 
   return (
-    <div className="fixed inset-0 grid grid-cols-[minmax(0,1fr)_360px] overflow-hidden bg-[#F8F8F5] font-sans text-ink">
-      <main className="flex min-w-0 flex-col p-6">
+    <div className="min-h-dvh bg-[#F8F8F5] font-sans text-ink lg:grid lg:h-dvh lg:grid-cols-[minmax(0,1fr)_360px] lg:overflow-hidden">
+      <main className="flex min-w-0 flex-col p-4 sm:p-6 lg:min-h-0 lg:overflow-hidden">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h1 className="m-0 font-serif text-[28px] font-medium">Map Marker Editor</h1>
@@ -287,7 +287,7 @@ export function MapMarkerEditor() {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 items-center justify-center rounded-[28px] border border-black/10 bg-white/60 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+        <div className="flex min-h-[420px] flex-1 items-center justify-center rounded-[28px] border border-black/10 bg-white/60 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.08)] sm:p-6 lg:min-h-0">
           <div
             ref={stageRef}
             onPointerDown={startCameraDrag}
@@ -404,7 +404,7 @@ export function MapMarkerEditor() {
         </div>
       </main>
 
-      <aside className="flex min-h-0 flex-col border-l border-black/10 bg-white/75 p-5 backdrop-blur">
+      <aside className="flex min-h-0 flex-col border-t border-black/10 bg-white/75 p-4 backdrop-blur sm:p-5 lg:h-dvh lg:overflow-y-auto lg:border-l lg:border-t-0">
         <div>
           <h2 className="m-0 font-serif text-[22px] font-medium">{scene.title}</h2>
           <p className="mt-2 text-sm leading-6 text-secondary">
@@ -433,7 +433,7 @@ export function MapMarkerEditor() {
           </div>
         </div>
 
-        <div className="mt-5 min-h-0 flex-1 overflow-auto rounded-2xl border border-black/10 bg-[#151512] p-4">
+        <div className="mt-5 min-h-[240px] flex-1 overflow-auto rounded-2xl border border-black/10 bg-[#151512] p-4 lg:min-h-0">
           <pre className="m-0 whitespace-pre-wrap break-words text-xs leading-5 text-[#EDEBE0]">{JSON.stringify(output, null, 2)}</pre>
         </div>
 
