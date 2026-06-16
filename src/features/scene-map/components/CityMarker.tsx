@@ -1,10 +1,8 @@
 import { LANDMARKS } from "../../../content/sceneMapContent";
-import { getCityDerivedStatus, getCityProgress } from "../../progress/progressSelectors";
+import { getCityDerivedStatus } from "../../progress/progressSelectors";
 import type { City, CityId } from "../../../types/content";
 import { CheckBadge, LockIcon } from "./Icons";
 import { MarkerImage, SceneThumbnail } from "./AssetImage";
-import { ProgressBar } from "./ProgressBar";
-import { STATUS_COPY } from "./StatusPill";
 import { useState } from "react";
 
 interface CityMarkerProps {
@@ -16,8 +14,6 @@ interface CityMarkerProps {
 export function CityMarker({ city, selected, onSelect }: CityMarkerProps) {
   const [hover, setHover] = useState(false);
   const status = getCityDerivedStatus(city.id);
-  const dim = status === "preview";
-  const progress = getCityProgress(city.id);
   const resolveChipImage = (image?: City["previewChips"][number]["image"], landmarkRef?: City["previewChips"][number]["landmarkRef"]) =>
     (landmarkRef ? LANDMARKS[landmarkRef]?.markerImage : undefined) ?? image ?? city.heroImage;
   const chipLayouts = [
@@ -45,7 +41,12 @@ export function CityMarker({ city, selected, onSelect }: CityMarkerProps) {
       }}
     >
       <div className="relative z-10">
-        <MarkerImage assetKey={city.markerImage} size={selected ? 86 : 76} dim={dim} />
+        <MarkerImage assetKey={city.markerImage} size={selected ? 102 : 92} />
+        {status === "preview" ? (
+          <div className="absolute -right-2 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full border border-white/85 bg-white/92 shadow-[0_3px_8px_rgba(0,0,0,0.14)]">
+            <LockIcon size={12} color="#8B8F97" />
+          </div>
+        ) : null}
         {selected ? (
           <div className="absolute -bottom-[7px] left-1/2 h-[11px] w-[11px] -translate-x-1/2 rounded-full border-[2.5px] border-white bg-sage shadow-[0_1px_4px_rgba(0,0,0,0.15)]" />
         ) : null}
@@ -56,7 +57,7 @@ export function CityMarker({ city, selected, onSelect }: CityMarkerProps) {
         ) : null}
       </div>
 
-      <div
+      {/* <div
         className={`mt-2 min-w-[86px] rounded-xl border px-[13px] py-[7px] text-center shadow-[0_4px_14px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-all duration-200 ${
           hover || selected ? "bg-white/90" : "bg-white/80"
         } ${selected ? "border-sage/30" : "border-black/[0.05]"}`}
@@ -75,7 +76,7 @@ export function CityMarker({ city, selected, onSelect }: CityMarkerProps) {
             <ProgressBar pct={progress} />
           </div>
         ) : null}
-      </div>
+      </div> */}
 
       {selected && city.previewChips ? (
         <div className="pointer-events-none absolute left-[calc(100%-4px)] top-[-12px] z-0 h-[146px] w-[228px]">
